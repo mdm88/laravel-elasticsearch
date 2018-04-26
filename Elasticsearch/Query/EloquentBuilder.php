@@ -1,7 +1,7 @@
 <?php
 namespace Yong\ElasticSuit\Elasticsearch\Query;
 
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Builder as Base;
 
 use Closure;
 use Illuminate\Support\Arr;
@@ -12,7 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model;
 
-class EloquentBuilder extends EloquentBuilder
+class EloquentBuilder extends Base
 {
     /**
      * The methods that should be returned from query builder.
@@ -41,7 +41,7 @@ class EloquentBuilder extends EloquentBuilder
         $this->model = $model;
 
         $this->query->from($model->getTable(), $model->getKeyName());
- 
+
         return $this;
     }
 }

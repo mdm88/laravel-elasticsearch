@@ -16,9 +16,9 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Processors\Processor;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Builder as Base;
 
-class Builder extends Builder
+class Builder extends Base
 {
     public $keyname;
 
@@ -92,7 +92,7 @@ class Builder extends Builder
             $columns = [$columns];
         }
 
-        return $this->aggregate(__FUNCTION__, $columns); 
+        return $this->aggregate(__FUNCTION__, $columns);
     }
 
 
@@ -105,7 +105,7 @@ class Builder extends Builder
      * @param  string  $operator  ('and', number for percentage)
      * @return $this
      */
-    public function whereMultiMatch(array $columns, $value, $operator='and', $boolean = 'and') 
+    public function whereMultiMatch(array $columns, $value, $operator='and', $boolean = 'and')
     {
         $type = 'MultiMatch';
         $op_param = $operator;
