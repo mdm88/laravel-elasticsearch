@@ -23,11 +23,9 @@ class Response
             $this->hits = [];
             $subhits =  Arr::get($hits, 'hits', []);
             foreach($subhits as $record) {
-                $id = Arr::get($record,'_id', null);
                 $_source = Arr::get($record, '_source', []);
-                if (!is_null($id)) {
-                    $_source['_id'] = $id;
-                }
+                $_source['_id'] = Arr::get($record,'_id', null);
+                $_source['_type'] = Arr::get($record,'_type', null);
                 $this->hits[] = $_source;
             }
         }
