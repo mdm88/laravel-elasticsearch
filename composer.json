@@ -1,5 +1,5 @@
 {
-    "name": "yong/elasticsuit",
+    "name": "mdm88/laravel-elasticsearch",
     "description": "Eloquent ORM encapsulation of Elasticsearch for Laravel",
     "keywords": ["laravel", "elasticsearch", "eloquent", "ORM"],
     "license": "MIT",
@@ -17,11 +17,6 @@
     "autoload": {
         "psr-4": {
             "Yong\\ElasticSuit\\": "./"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
         }
     }
 }
