@@ -22,7 +22,7 @@ class EloquentBuilder extends Base
     protected $passthru = [
         'insert', 'insertGetId', 'getBindings', 'toSql',
         'exists', 'count', 'min', 'max', 'avg', 'sum', 'getConnection',
-        'stats'
+        'stats','getTotal'
     ];
 
     /**
