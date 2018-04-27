@@ -176,6 +176,16 @@ class Builder extends Base
     }
 
     /**
+     * Execute the query as a "select" statement.
+     *
+     * @return int
+     */
+    public function getTotal()
+    {
+        return $this->processor->processTotal($this, $this->runSelect());
+    }
+
+    /**
      * Set the "offset" value of the query.
      *
      * @param  int  $value

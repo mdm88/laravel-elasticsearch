@@ -44,6 +44,19 @@ class Processor extends BaseProcessor
      *
      * @param  \Illuminate\Database\Query\Builder  $query
      * @param  array  $results
+     * @return int
+     */
+    public function processTotal(Builder $query, $values)
+    {
+        $rsp = new Response($values);
+        return $rsp->getTotal();
+    }
+
+    /**
+     * Process the results of a "select" query.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $results
      * @return array
      */
     public function processSelectAggregate(Builder $query, $values)
