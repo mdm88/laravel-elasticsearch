@@ -19,7 +19,7 @@ class Grammar extends BaseGrammar
     private function processKeyValue(Builder $query, array &$values) {
         if ($query->keyname && isset($values[$query->keyname])) {
             $keyvalue = $values[$query->keyname];
-            // unset($values[$query->keyname]);  //we still keep the 
+            // unset($values[$query->keyname]);  //we still keep the
             return [true, $keyvalue];
         }
         return [false, null];
@@ -59,7 +59,7 @@ class Grammar extends BaseGrammar
 
         if (is_null($query->columns)) {
             $query->columns = [];
-        } 
+        }
 
         $sqls = $this->compileComponents($query);
         $query->columns = $original;
@@ -107,8 +107,8 @@ class Grammar extends BaseGrammar
             return false;
         }
         $conditions = [
-            'must'=>[], 
-            'must_not'=>[], 
+            'must'=>[],
+            'must_not'=>[],
             'should'=>[]
         ];
 
@@ -131,6 +131,9 @@ class Grammar extends BaseGrammar
                         break;
                     case 'and_in':
                         $conditions['must'][] = $expressions;
+                        break;
+                    case 'or_in':
+                        $conditions['should'][] = $expressions;
                         break;
                     case 'and_notin':
                         $conditions['must_not'][] = $expressions;
@@ -221,9 +224,10 @@ class Grammar extends BaseGrammar
      */
     protected function whereNull(Builder $query, $where)
     {
-        return ['exists' => [
+        return [
+            /*'exists' => [
                 'field' => $where['column']
-            ]
+            ]*/
         ];
     }
 
@@ -236,7 +240,11 @@ class Grammar extends BaseGrammar
      */
     protected function whereNotNull(Builder $query, $where)
     {
-        return $this->whereNull($query, $where);
+        return [
+            /*'missing' => [
+                'field' => $where['column']
+            ]*/
+        ];
     }
 
     /**
@@ -263,7 +271,7 @@ class Grammar extends BaseGrammar
             case 'like':
                 $filters['match'] = [
                     $column => [
-                        'query' => $value, 
+                        'query' => $value,
                         'fuzziness'=>'AUTO',
                         'operator' => 'and'
                     ]
@@ -272,7 +280,7 @@ class Grammar extends BaseGrammar
             case '=':
                 $filters['match'] = [
                     $column => [
-                        'query' => $value, 
+                        'query' => $value,
                         'operator' => 'and'
                     ]
                 ];
@@ -282,7 +290,7 @@ class Grammar extends BaseGrammar
                 $must_not = 'true';
                 $filters['match'] = [
                     $column => [
-                        'query' => $value, 
+                        'query' => $value,
                         'operator' => 'and'
                     ]
                 ];
@@ -352,7 +360,7 @@ class Grammar extends BaseGrammar
         return $offset;
     }
 
-    
+
 
     /**
      * Compile the "limit" portions of the query.
@@ -431,14 +439,14 @@ class Grammar extends BaseGrammar
     {
         // return [
         //     "eloquent_aggregate" => [
-        //         $this->aggregateMapping[$aggregate['function']] => [ "field" => $aggregate['columns']] 
+        //         $this->aggregateMapping[$aggregate['function']] => [ "field" => $aggregate['columns']]
         //     ]
         // ];
         $column = implode(',', $aggregate['columns']);
         $column = ($column=='*') ? $query->keyname : $column;
         return [
             'aggregate' => [
-                $this->aggregateMapping[$aggregate['function']] => [ 'field' => $column] 
+                $this->aggregateMapping[$aggregate['function']] => [ 'field' => $column]
             ]
         ];
     }
@@ -477,5 +485,5 @@ class Grammar extends BaseGrammar
         }
         return $sorts;
     }
-  
+
 }
