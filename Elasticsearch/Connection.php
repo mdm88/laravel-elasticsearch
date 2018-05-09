@@ -153,7 +153,11 @@ class Connection extends BaseConnection
      * @return bool
      */
     public function insert($des, $data=[]) {
-        $result = $this->connect()->index($data);
+        // correccion del formato
+        $des['body'] = $des['body'][0];
+        $des['id'] = $des['body']['_id'];
+
+        $result = $this->connect()->index($des);
         if (isset($result['result']) && in_array($result['result'], ['updated', 'created'])) {
             $this->_lastInsertId = $result['_id'];
             return true;
