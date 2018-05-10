@@ -43,6 +43,16 @@ class Connection extends BaseConnection
     }
 
     /**
+     * Get the current PDO connection.
+     *
+     * @return \PDO
+     */
+    public function getPdo()
+    {
+        return $this->connect();
+    }
+
+    /**
      * Get the default query grammar instance.
      *
      * @return \Illuminate\Database\Query\Grammars\SQLiteGrammar
