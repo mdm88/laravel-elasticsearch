@@ -106,10 +106,17 @@ class Grammar extends BaseGrammar
         if (is_null($query->wheres)) {
             return false;
         }
-        $conditions = [
+        $query_cond = [
             'must'=>[],
             'must_not'=>[],
             'should'=>[]
+        ];
+        $filter_cond = [
+            'and' => [
+                'filters' => [
+
+                ]
+            ]
         ];
 
         foreach ($query->wheres as $where) {
@@ -124,36 +131,36 @@ class Grammar extends BaseGrammar
             if (!empty($expressions) && is_array($expressions) && count($expressions)>0) {
                 switch(strtolower(implode('_', [$where['boolean'], $where['type']]))) {
                     case 'and_basic':
-                        $conditions[$must_not ? 'must_not' : 'must'][] = $expressions;
+                        $query_cond[$must_not ? 'must_not' : 'must'][] = $expressions;
                         break;
                     case 'or_basic':
-                        $conditions['should'][] = $expressions;
+                        $query_cond['should'][] = $expressions;
                         break;
                     case 'and_in':
-                        $conditions['must'][] = $expressions;
+                        $query_cond['must'][] = $expressions;
                         break;
                     case 'or_in':
-                        $conditions['should'][] = $expressions;
+                        $query_cond['should'][] = $expressions;
                         break;
                     case 'and_notin':
-                        $conditions['must_not'][] = $expressions;
+                        $query_cond['must_not'][] = $expressions;
                         break;
                     case 'and_multimatch':
-                        $conditions['must'][] = $expressions;
+                        $query_cond['must'][] = $expressions;
                         break;
                     case 'and_null':
-                        $conditions['must'][] = $expressions;
+                        $filter_cond['and']['filters'][] = $expressions;
                         break;
                     case 'and_notnull':
-                        $conditions['must_not'][] = $expressions;
+                        $filter_cond['and']['filters'][] = ['not' => $expressions];
                         break;
 
-                    case 'or_null':
-                        $conditions['should'][] = $expressions;
+                    /*case 'or_null':
+                        $query_cond['should'][] = $expressions;
                         break;
                     case 'or_notnull':
-                        $conditions['must_not'][] = $expressions;
-                        break;
+                        $query_cond['must_not'][] = $expressions;
+                        break;*/
                     default:
                         $this->notSupport($method);
                         break;
@@ -161,11 +168,14 @@ class Grammar extends BaseGrammar
             }
         }
 
-        if (count($conditions['must']) > 0 || count($conditions['must_not'] > 0) || count($conditions['should']) > 0) {
-            if (count($conditions['must']) == 1) {
-                $conditions['must'] = $conditions['must'][0];
+        if (count($query_cond['must']) > 0 || count($query_cond['must_not'] > 0) || count($query_cond['should']) > 0) {
+            if (count($query_cond['must']) == 1) {
+                $query_cond['must'] = $query_cond['must'][0];
             }
-            return ['bool'=>$conditions];
+            return [
+                'query'=>['bool'=>$query_cond],
+                'filter'=>$filter_cond
+            ];
         }
         return false;
     }
@@ -225,9 +235,9 @@ class Grammar extends BaseGrammar
     protected function whereNull(Builder $query, $where)
     {
         return [
-            /*'exists' => [
+            'exists' => [
                 'field' => $where['column']
-            ]*/
+            ]
         ];
     }
 
@@ -241,9 +251,9 @@ class Grammar extends BaseGrammar
     protected function whereNotNull(Builder $query, $where)
     {
         return [
-            /*'missing' => [
+            'missing' => [
                 'field' => $where['column']
-            ]*/
+            ]
         ];
     }
 
@@ -385,7 +395,7 @@ class Grammar extends BaseGrammar
         'columns' => '_source',
         'from' => 'from',
         'joins' => 'joins',
-        'wheres' => 'query',
+        'wheres' => '',
         'groups' => 'groups',
         'havings' => 'havings',
         'orders' => 'sort',
@@ -412,7 +422,11 @@ class Grammar extends BaseGrammar
                 $result = $this->$method($query, $query->$component);
                 if ($result !== false) {
                     $componentname = $this->selectComponentsMapping[$component];
-                    $sql[$componentname] = $result;
+                    if (!$componentname) {
+                        $sql = array_merge($sql, $result);
+                    } else {
+                        $sql[$componentname] = $result;
+                    }
                 }
             }
         }
