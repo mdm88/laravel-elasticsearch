@@ -112,55 +112,74 @@ class Grammar extends BaseGrammar
             'should'=>[]
         ];
         $filter_cond = [
-            'and' => [
+            'or' => [
                 'filters' => [
+                    [
+                        'and' => [
+                            'filters' => [
 
+                            ]
+                        ]
+                    ]
                 ]
             ]
         ];
+        $orIndex = 0;
 
         foreach ($query->wheres as $where) {
             $method = "where{$where['type']}";
             if ($method === 'whereBasic') {
-                list($expressions, $must_not) = $this->$method($query, $where);
+                list($expressions, $is_filter) = $this->$method($query, $where);
             } else {
                 $expressions = $this->$method($query, $where);
-                $must_not = false;
+                $is_filter = ($where['type'] != 'multimatch');
             }
 
             if (!empty($expressions) && is_array($expressions) && count($expressions)>0) {
+                if ($is_filter && $where['boolean'] == 'or' && count($filter_cond['or']['filters'][$orIndex]['and']['filters']) > 0) {
+                    // Agrego un nuevo or
+                    $filter_cond['or']['filters'][] = [
+                        'and' => [
+                            'filters' => [
+
+                            ]
+                        ]
+                    ];
+                    $orIndex++;
+                }
+
                 switch(strtolower(implode('_', [$where['boolean'], $where['type']]))) {
                     case 'and_basic':
-                        $query_cond[$must_not ? 'must_not' : 'must'][] = $expressions;
+                        if ($is_filter) {
+                            $filter_cond['or']['filters'][$orIndex]['and']['filters'][] = $expressions;
+                        } else {
+                            $query_cond['must'][] = $expressions;
+                        }
+
                         break;
                     case 'or_basic':
-                        $query_cond['should'][] = $expressions;
+                        if ($is_filter) {
+                            $filter_cond['or']['filters'][$orIndex]['and']['filters'][] = $expressions;
+                        } else {
+                            $query_cond['should'][] = $expressions;
+                        }
                         break;
-                    case 'and_in':
-                        $query_cond['must'][] = $expressions;
-                        break;
-                    case 'or_in':
-                        $query_cond['should'][] = $expressions;
-                        break;
-                    case 'and_notin':
-                        $query_cond['must_not'][] = $expressions;
-                        break;
+
                     case 'and_multimatch':
                         $query_cond['must'][] = $expressions;
                         break;
+
+                    case 'and_in':
                     case 'and_null':
-                        $filter_cond['and']['filters'][] = $expressions;
-                        break;
+                    case 'or_in':
+                    case 'or_null':
+                    case 'and_notin':
                     case 'and_notnull':
-                        $filter_cond['and']['filters'][] = ['not' => $expressions];
+                    case 'or_notin':
+                    case 'or_notnull':
+                        $filter_cond['or']['filters'][$orIndex]['and']['filters'][] = $expressions;
                         break;
 
-                    /*case 'or_null':
-                        $query_cond['should'][] = $expressions;
-                        break;
-                    case 'or_notnull':
-                        $query_cond['must_not'][] = $expressions;
-                        break;*/
                     default:
                         $this->notSupport($method);
                         break;
@@ -269,7 +288,7 @@ class Grammar extends BaseGrammar
         $value = $where['value'];
         $column = $this->removeTableFromColumn($query, $where['column']);
 
-        $must_not = false;
+        $is_filter = false;
         $filters = [];
         switch($where['operator']) {
             case '>':
@@ -288,20 +307,21 @@ class Grammar extends BaseGrammar
                 ];
                 break;
             case '=':
-                $filters['match'] = [
-                    $column => [
-                        'query' => $value,
-                        'operator' => 'and'
+                $is_filter = true;
+                $filters = [
+                    'term' => [
+                        $column => $value
                     ]
                 ];
                 break;
             case '<>':
             case '!=':
-                $must_not = 'true';
-                $filters['match'] = [
-                    $column => [
-                        'query' => $value,
-                        'operator' => 'and'
+                $is_filter = true;
+                $filters = [
+                    'not' => [
+                        'term' => [
+                            $column => $value
+                        ]
                     ]
                 ];
                 break;
@@ -311,7 +331,7 @@ class Grammar extends BaseGrammar
                 break;
         }
 
-        return [$filters, $must_not];
+        return [$filters, $is_filter];
     }
 
     /**
@@ -343,7 +363,7 @@ class Grammar extends BaseGrammar
      */
     protected function whereNotIn(Builder $query, $where)
     {
-        return $this->whereIn($query, $where);
+        return ['not' => $this->whereIn($query, $where)];
     }
 
     /**
