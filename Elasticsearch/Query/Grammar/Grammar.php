@@ -177,6 +177,8 @@ class Grammar extends BaseGrammar
                     case 'and_notnull':
                     case 'or_notin':
                     case 'or_notnull':
+                    case 'and_raw':
+                    case 'or_raw':
                         $filter_cond['or']['filters'][$orIndex]['and']['filters'][] = $expressions;
                         break;
 
