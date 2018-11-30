@@ -168,6 +168,9 @@ class Grammar extends BaseGrammar
                     case 'and_multimatch':
                         $query_cond['must'][] = $expressions;
                         break;
+                    case 'or_multimatch':
+                        $query_cond['should'][] = $expressions;
+                        break;
 
                     case 'and_in':
                     case 'and_null':
